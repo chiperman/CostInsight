@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: user-service   # 应用名称
+  datasource:
+    url: jdbc:mysql://localhost:3306/investment_tracker?useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: 12345678
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/**/*.xml   # Mapper XML 文件位置
+  type-aliases-package: com.costinsight.user.entity  # 实体类包名
+  global-config:
+    db-config:
+      id-type: auto          # 主键生成策略
+      logic-delete-value: 1  # 逻辑删除值
+      logic-not-delete-value: 0 # 逻辑未删除值
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # SQL 输出到控制台
+
+server:
+  port: 8081   # user-service 端口号
+
+logging:
+  level:
+    root: info
+    com.costinsight.user: debug
+
+# JWT Configuration
+app:
+  jwt:
+    secret: mySecretKeyForCostInsightApplicationWhichIsLongEnoughToBeSecure
+    expiration: 86400000 # 24小时 (毫秒)
+
+# Nacos 配置（如果需要）
+# spring:
+#   cloud:
+#     nacos:
+#       discovery:
+#         server-addr: 127.0.0.1:8848
