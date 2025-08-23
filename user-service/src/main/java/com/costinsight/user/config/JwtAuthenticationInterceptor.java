@@ -1,12 +1,12 @@
 package com.costinsight.user.config;
 
 import com.costinsight.user.util.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,8 +26,12 @@ public class JwtAuthenticationInterceptor implements HandlerInterceptor {
 
             // 验证 Token
             if (jwtUtil.validateToken(token)) {
+                // 解析 Token 获取用户信息
+                String userId = jwtUtil.getUserIdFromToken(token);
                 String username = jwtUtil.getUsernameFromToken(token);
-                // 可以将用户名存入 request attribute 供后续使用
+
+                // 将关键信息存入 request attribute 供后续使用
+                request.setAttribute("userId", Long.parseLong(userId));
                 request.setAttribute("username", username);
                 return true; // Token 有效，放行请求
             }

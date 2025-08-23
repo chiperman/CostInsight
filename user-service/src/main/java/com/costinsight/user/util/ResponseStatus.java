@@ -6,10 +6,12 @@ package com.costinsight.user.util;
 public enum ResponseStatus {
     // 成功
     SUCCESS(200, "Success"),
+    TOKEN_VALID(200, "Token is valid"),
 
     // 用户相关错误
     USER_REGISTERED_SUCCESS(200, "User registered successfully"),
     LOGIN_SUCCESS(200, "Login successful"),
+    PASSWORD_UPDATED_SUCCESS(200, "Password updated successfully"),
     INVALID_CREDENTIALS(401, "Invalid credentials"),
     USER_NOT_FOUND(404, "User not found"),
     USER_ALREADY_EXISTS(400, "User already exists"),

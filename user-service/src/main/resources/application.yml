@@ -25,6 +25,8 @@ logging:
   level:
     root: info
     com.costinsight.user: debug
+    com.costinsight.user.config.JwtAuthenticationInterceptor: debug # 启用拦截器的 debug 日志
+    com.costinsight.user.util.JwtUtil: debug # 启用 JWT 工具类的 debug 日志
 
 # JWT Configuration
 app:

@@ -3,7 +3,7 @@ package com.costinsight.user.controller;
 import com.costinsight.user.dto.JwtResponse;
 import com.costinsight.user.dto.LoginRequest;
 import com.costinsight.user.dto.RegisterRequest;
-import com.costinsight.user.entity.User;
+import com.costinsight.user.dto.UserResponseVO;
 import com.costinsight.user.service.UserService;
 import com.costinsight.user.util.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,7 +38,7 @@ class AuthControllerTest {
      */
     @MockBean
     private UserService userService;
-    
+
     /**
      * 模拟 JwtUtil，用于替换真实的 JWT 工具类实现。
      */
@@ -67,13 +67,12 @@ class AuthControllerTest {
         registerRequest.setPassword("password123");
         registerRequest.setConfirmPassword("password123");
 
-        User registeredUser = new User();
-        registeredUser.setId(1L);
-        registeredUser.setUsername("testuser");
-        registeredUser.setEmail("test@example.com");
-        // 注意：在实际实现中，密码应该在返回前被置为 null
+        UserResponseVO registeredUserVO = new UserResponseVO();
+        registeredUserVO.setId(1L);
+        registeredUserVO.setUsername("testuser");
+        registeredUserVO.setEmail("test@example.com");
 
-        when(userService.register(any(RegisterRequest.class))).thenReturn(registeredUser);
+        when(userService.register(any(RegisterRequest.class))).thenReturn(registeredUserVO);
 
         // When & Then
         mockMvc.perform(post("/api/auth/register")
@@ -131,9 +130,7 @@ class AuthControllerTest {
         String token = "generated-jwt-token";
         long expiresIn = 86400000;
         JwtResponse jwtResponse = new JwtResponse(token, expiresIn);
-        
-        // Mock JwtUtil behavior
-        when(jwtUtil.generateToken("testuser")).thenReturn(token);
+
 
         when(userService.login(any(LoginRequest.class))).thenReturn(jwtResponse);
 
