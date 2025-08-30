@@ -1,42 +1,14 @@
 spring:
   application:
-    name: user-service   # 应用名称
-  datasource:
-    url: jdbc:mysql://localhost:3306/investment_tracker?useSSL=false&serverTimezone=Asia/Shanghai
-    username: root
-    password: 12345678
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    name: user-service   # 应用名，对应 nacos 配置文件 user-service.yml
+  config:
+    import: nacos:user-service.yml # 从 nacos 加载 user-service.yml
 
-mybatis-plus:
-  mapper-locations: classpath*:mapper/**/*.xml   # Mapper XML 文件位置
-  type-aliases-package: com.costinsight.user.entity  # 实体类包名
-  global-config:
-    db-config:
-      id-type: auto          # 主键生成策略
-      logic-delete-value: 1  # 逻辑删除值
-      logic-not-delete-value: 0 # 逻辑未删除值
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # SQL 输出到控制台
-
-server:
-  port: 8081   # user-service 端口号
-
-logging:
-  level:
-    root: info
-    com.costinsight.user: debug
-    com.costinsight.user.config.JwtAuthenticationInterceptor: debug # 启用拦截器的 debug 日志
-    com.costinsight.user.util.JwtUtil: debug # 启用 JWT 工具类的 debug 日志
-
-# JWT Configuration
-app:
-  jwt:
-    secret: mySecretKeyForCostInsightApplicationWhichIsLongEnoughToBeSecure
-    expiration: 86400000 # 24小时 (毫秒)
-
-# Nacos 配置（如果需要）
-# spring:
-#   cloud:
-#     nacos:
-#       discovery:
-#         server-addr: 127.0.0.1:8848
+  cloud:
+    nacos:
+      server-addr: 127.0.0.1:8848   # Nacos 服务地址
+      username: nacos               # 登录用户名
+      password: nacos               # 登录密码
+      config:
+        group: DEFAULT_GROUP        # 配置分组
+        file-extension: yml         # 配置文件后缀
