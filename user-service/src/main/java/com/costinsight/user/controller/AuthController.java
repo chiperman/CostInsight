@@ -13,7 +13,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,18 +29,15 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "认证接口", description = "用户注册与登录相关接口")
 public class AuthController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final JwtUtil jwtUtil;
 
     @Autowired
-    private JwtUtil jwtUtil;
+    public AuthController(UserService userService, JwtUtil jwtUtil) {
+        this.userService = userService;
+        this.jwtUtil = jwtUtil;
+    }
 
-    /**
-     * 用户注册接口
-     *
-     * @param registerRequest 注册请求 DTO
-     * @return ResponseEntity 注册结果
-     */
     @Operation(summary = "用户注册", description = "使用用户名、邮箱和密码进行用户注册")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "注册成功",
@@ -61,12 +60,6 @@ public class AuthController {
         }
     }
 
-    /**
-     * 用户登录接口
-     *
-     * @param loginRequest 登录请求 DTO
-     * @return ResponseEntity 登录结果 (包含 JWT Token)
-     */
     @Operation(summary = "用户登录", description = "使用用户名/邮箱和密码进行登录，获取 JWT Token")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "登录成功",
@@ -89,12 +82,6 @@ public class AuthController {
         }
     }
 
-    /**
-     * 验证 JWT Token 有效性
-     *
-     * @param validateRequest 包含待验证 Token 的请求 DTO
-     * @return ResponseEntity 验证结果
-     */
     @Operation(summary = "验证Token", description = "验证给定的 JWT Token 是否有效，并返回其载荷信息")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Token 有效",
@@ -112,6 +99,27 @@ public class AuthController {
             return ResponseUtil.error(ResponseStatus.UNAUTHORIZED, "Token has expired");
         } catch (JwtException | IllegalArgumentException e) {
             return ResponseUtil.error(ResponseStatus.UNAUTHORIZED, "Invalid token: " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "用户登出", description = "使当前的 JWT Token 失效",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "登出成功"),
+            @ApiResponse(responseCode = "401", description = "未授权或 Token 无效")
+    })
+    @PostMapping("/logout")
+    public ResponseEntity<?> logoutUser(HttpServletRequest request) {
+        try {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                userService.logout(token);
+                return ResponseUtil.success(null, ResponseStatus.SUCCESS);
+            }
+            return ResponseUtil.error(ResponseStatus.UNAUTHORIZED, "Authorization header is missing or invalid.");
+        } catch (Exception e) {
+            return ResponseUtil.error(ResponseStatus.INTERNAL_SERVER_ERROR, "An error occurred during logout.");
         }
     }
 }

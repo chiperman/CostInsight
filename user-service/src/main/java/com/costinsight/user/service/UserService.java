@@ -31,6 +31,13 @@ public interface UserService extends IService<User> {
     User findByUsername(String username);
 
     /**
+     * 用户登出
+     *
+     * @param token 待失效的 JWT
+     */
+    void logout(String token);
+
+    /**
      * 根据ID安全地查找用户信息
      *
      * @param id 用户ID
@@ -52,7 +59,7 @@ public interface UserService extends IService<User> {
     /**
      * 根据ID修改密码
      *
-     * @param userId 用户ID
+     * @param userId                用户ID
      * @param changePasswordRequest 修改密码请求 DTO
      */
     void changePassword(Long userId, ChangePasswordRequest changePasswordRequest);

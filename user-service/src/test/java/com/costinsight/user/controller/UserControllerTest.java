@@ -6,10 +6,13 @@ import com.costinsight.user.dto.UserUpdateRequest;
 import com.costinsight.user.service.UserService;
 import com.costinsight.user.util.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.impl.DefaultClaims;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -33,6 +36,9 @@ class UserControllerTest {
     @MockBean
     private JwtUtil jwtUtil; // Mock JwtUtil because the interceptor depends on it
 
+    @MockBean
+    private StringRedisTemplate stringRedisTemplate;
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -40,6 +46,12 @@ class UserControllerTest {
     void testUpdateCurrentUser_Success() throws Exception {
         // Given
         Long currentUserId = 1L;
+        String token = "dummy-token";
+        Claims claims = new DefaultClaims();
+        claims.setSubject(String.valueOf(currentUserId));
+        claims.put("jti", "dummy-jti");
+        when(jwtUtil.parseTokenAndGetClaims(token)).thenReturn(claims);
+
         UserUpdateRequest updateRequest = new UserUpdateRequest();
         updateRequest.setEmail("new.email@example.com");
 
@@ -52,6 +64,7 @@ class UserControllerTest {
 
         // When & Then
         mockMvc.perform(put("/api/users/me")
+                        .header("Authorization", "Bearer " + token)
                         .requestAttr("userId", currentUserId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
@@ -65,6 +78,12 @@ class UserControllerTest {
     void testGetUser_Success() throws Exception {
         // Given
         Long userId = 1L;
+        String token = "dummy-token";
+        Claims claims = new DefaultClaims();
+        claims.setSubject(String.valueOf(userId));
+        claims.put("jti", "dummy-jti");
+        when(jwtUtil.parseTokenAndGetClaims(token)).thenReturn(claims);
+
         UserResponseVO userVO = new UserResponseVO();
         userVO.setId(userId);
         userVO.setUsername("testuser");
@@ -72,7 +91,8 @@ class UserControllerTest {
         when(userService.findUserById(userId)).thenReturn(userVO);
 
         // When & Then
-        mockMvc.perform(get("/api/users/{id}", userId))
+        mockMvc.perform(get("/api/users/{id}", userId)
+                        .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.id").value(userId))
@@ -83,15 +103,22 @@ class UserControllerTest {
     void testChangeCurrentUserPassword_Success() throws Exception {
         // Given
         Long currentUserId = 1L;
+        String token = "dummy-token";
+        Claims claims = new DefaultClaims();
+        claims.setSubject(String.valueOf(currentUserId));
+        claims.put("jti", "dummy-jti");
+        when(jwtUtil.parseTokenAndGetClaims(token)).thenReturn(claims);
+
         ChangePasswordRequest request = new ChangePasswordRequest();
-        request.setOldPassword("oldPass");
-        request.setNewPassword("newPass");
-        request.setConfirmNewPassword("newPass");
+        request.setOldPassword("OldPassword123");
+        request.setNewPassword("NewPassword123");
+        request.setConfirmNewPassword("NewPassword123");
 
         doNothing().when(userService).changePassword(eq(currentUserId), any(ChangePasswordRequest.class));
 
         // When & Then
         mockMvc.perform(put("/api/users/me/password")
+                        .header("Authorization", "Bearer " + token)
                         .requestAttr("userId", currentUserId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -104,16 +131,23 @@ class UserControllerTest {
     void testChangeCurrentUserPassword_Failure() throws Exception {
         // Given
         Long currentUserId = 1L;
+        String token = "dummy-token";
+        Claims claims = new DefaultClaims();
+        claims.setSubject(String.valueOf(currentUserId));
+        claims.put("jti", "dummy-jti");
+        when(jwtUtil.parseTokenAndGetClaims(token)).thenReturn(claims);
+
         ChangePasswordRequest request = new ChangePasswordRequest();
-        request.setOldPassword("wrongOldPass");
-        request.setNewPassword("newPass");
-        request.setConfirmNewPassword("newPass");
+        request.setOldPassword("WrongOldPassword123");
+        request.setNewPassword("NewPassword123");
+        request.setConfirmNewPassword("NewPassword123");
 
         doThrow(new IllegalArgumentException("Invalid old password"))
                 .when(userService).changePassword(eq(currentUserId), any(ChangePasswordRequest.class));
 
         // When & Then
         mockMvc.perform(put("/api/users/me/password")
+                        .header("Authorization", "Bearer " + token)
                         .requestAttr("userId", currentUserId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -51,6 +52,9 @@ class AuthControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @MockBean
+    private StringRedisTemplate stringRedisTemplate;
+
     /**
      * 测试用户注册成功的情况。
      * 构造一个有效的 RegisterRequest 请求体，并模拟 userService 返回已注册的用户对象。
@@ -64,8 +68,8 @@ class AuthControllerTest {
         RegisterRequest registerRequest = new RegisterRequest();
         registerRequest.setUsername("testuser");
         registerRequest.setEmail("test@example.com");
-        registerRequest.setPassword("password123");
-        registerRequest.setConfirmPassword("password123");
+        registerRequest.setPassword("Password123");
+        registerRequest.setConfirmPassword("Password123");
 
         UserResponseVO registeredUserVO = new UserResponseVO();
         registeredUserVO.setId(1L);
@@ -98,8 +102,8 @@ class AuthControllerTest {
         RegisterRequest registerRequest = new RegisterRequest();
         registerRequest.setUsername("testuser");
         registerRequest.setEmail("test@example.com");
-        registerRequest.setPassword("password123");
-        registerRequest.setConfirmPassword("differentpassword");
+        registerRequest.setPassword("Password123");
+        registerRequest.setConfirmPassword("DifferentPassword123");
 
         when(userService.register(any(RegisterRequest.class)))
                 .thenThrow(new IllegalArgumentException("Passwords do not match"));
@@ -125,7 +129,7 @@ class AuthControllerTest {
         // Given
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setUsernameOrEmail("testuser");
-        loginRequest.setPassword("password123");
+        loginRequest.setPassword("Password123");
 
         String token = "generated-jwt-token";
         long expiresIn = 86400000;
@@ -158,7 +162,7 @@ class AuthControllerTest {
         // Given
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setUsernameOrEmail("testuser");
-        loginRequest.setPassword("wrongpassword");
+        loginRequest.setPassword("WrongPassword123");
 
         when(userService.login(any(LoginRequest.class)))
                 .thenThrow(new IllegalArgumentException("Invalid password"));

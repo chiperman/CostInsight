@@ -7,23 +7,35 @@ import com.costinsight.user.entity.User;
 import com.costinsight.user.mapper.UserMapper;
 import com.costinsight.user.service.UserService;
 import com.costinsight.user.util.JwtUtil;
+import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
-    private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    @Autowired
-    private UserMapper userMapper;
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final BCryptPasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
+    private final JwtUtil jwtUtil;
+    private final StringRedisTemplate redisTemplate;
+
     @Value("${app.jwt.expiration}")
     private long jwtExpirationMs; // JWT 过期时间 (毫秒)
+
+    @Autowired
+    public UserServiceImpl(BCryptPasswordEncoder passwordEncoder, UserMapper userMapper, JwtUtil jwtUtil, StringRedisTemplate redisTemplate) {
+        this.passwordEncoder = passwordEncoder;
+        this.userMapper = userMapper;
+        this.jwtUtil = jwtUtil;
+        this.redisTemplate = redisTemplate;
+    }
 
     @Override
     public UserResponseVO register(RegisterRequest registerRequest) {
@@ -98,7 +110,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return convertToVO(user);
     }
 
-
     @Override
     public UserResponseVO updateUserById(Long id, UserUpdateRequest updateRequest) {
         // 1. 根据ID查找用户
@@ -168,11 +179,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         this.removeById(id);
     }
 
-    /**
-     * 将 User 实体转换为 UserResponseVO
-     * @param user 用户实体
-     * @return UserResponseVO 视图对象
-     */
     private UserResponseVO convertToVO(User user) {
         if (user == null) {
             return null;
@@ -184,5 +190,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         vo.setCreatedAt(user.getCreatedAt());
         vo.setUpdatedAt(user.getUpdatedAt());
         return vo;
+    }
+
+    @Override
+    public void logout(String token) {
+        try {
+            Claims claims = jwtUtil.parseTokenAndGetClaims(token);
+            String jti = claims.getId();
+            Date expiration = claims.getExpiration();
+
+            long remainingMillis = expiration.getTime() - System.currentTimeMillis();
+
+            // 只有当 token 尚未过期时，才将其加入黑名单
+            if (remainingMillis > 0) {
+                String key = "jwt:blacklist:" + jti;
+                redisTemplate.opsForValue().set(key, "1", remainingMillis, TimeUnit.MILLISECONDS);
+            }
+        } catch (Exception e) {
+            // 如果 token 解析失败（例如已过期或格式错误），我们无需做任何事，因为它已经无法通过验证。
+            // 这里可以添加日志记录，用于调试。
+            // log.warn("Could not add token to blacklist. It may be expired or invalid: {}", e.getMessage());
+        }
     }
 }

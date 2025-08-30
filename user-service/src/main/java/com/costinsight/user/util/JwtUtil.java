@@ -13,6 +13,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtUtil {
@@ -75,6 +76,7 @@ public class JwtUtil {
         // 构建并返回 JWT Token
         return Jwts.builder()
                 .setSubject(user.getId().toString()) // 设置主题为用户ID
+                .setId(UUID.randomUUID().toString()) // 设置 JTI，Token 的唯一标识
                 .claim("username", user.getUsername()) // 添加 username
                 .claim("email", user.getEmail())       // 添加 email
                 .setIssuedAt(new Date()) // 设置签发时间

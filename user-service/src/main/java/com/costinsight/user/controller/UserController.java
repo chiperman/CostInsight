@@ -23,8 +23,12 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "用户管理接口", description = "用户信息的增删改查接口")
 public class UserController {
 
+    private final UserService userService;
+
     @Autowired
-    private UserService userService;
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @Operation(summary = "更新当前用户信息", description = "更新当前登录用户的邮箱等信息",
             security = @SecurityRequirement(name = "bearerAuth"))
