@@ -11,6 +11,9 @@ import com.costinsight.user.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -104,6 +107,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @Cacheable(cacheNames = "user", key = "#id")
     public UserResponseVO findUserById(Long id) {
         User user = userMapper.selectById(id);
         if (user == null || user.getDeleted() == 1) {
@@ -113,6 +117,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @CachePut(cacheNames = "user", key = "#id")
     public UserResponseVO updateUserById(Long id, UserUpdateRequest updateRequest) {
         // 1. 根据ID查找用户
         User user = userMapper.selectById(id);
@@ -167,6 +172,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @CacheEvict(cacheNames = "user", key = "#id")
     public void deleteUser(Long id) {
         // 1. 根据ID查找用户
         User user = userMapper.selectById(id);
