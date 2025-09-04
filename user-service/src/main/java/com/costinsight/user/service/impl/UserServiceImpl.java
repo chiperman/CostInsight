@@ -2,6 +2,7 @@ package com.costinsight.user.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.costinsight.user.constant.RoleConstants;
 import com.costinsight.user.dto.*;
 import com.costinsight.user.entity.User;
 import com.costinsight.user.mapper.UserMapper;
@@ -58,6 +59,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User user = new User();
         user.setUsername(registerRequest.getUsername());
         user.setEmail(registerRequest.getEmail());
+        user.setRole(RoleConstants.ROLE_USER);
         // 4. 密码加密
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         user.setCreatedAt(LocalDateTime.now());
@@ -120,8 +122,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         // 2. 检查用户请求更新的邮箱是否与当前邮箱不同
         if (user.getEmail().equals(updateRequest.getEmail())) {
-            // 如果邮箱相同，则直接返回当前用户信息
-            return convertToVO(user);
+            // 如果邮箱相同，则提示用户邮箱相同
+            throw new IllegalArgumentException("Email is the same");
         }
 
         // 3. 如果邮箱不同，则验证新邮箱的唯一性

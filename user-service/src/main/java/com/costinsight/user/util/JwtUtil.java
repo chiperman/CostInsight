@@ -79,6 +79,7 @@ public class JwtUtil {
                 .setId(UUID.randomUUID().toString()) // 设置 JTI，Token 的唯一标识
                 .claim("username", user.getUsername()) // 添加 username
                 .claim("email", user.getEmail())       // 添加 email
+                .claim("role", user.getRole())         // 添加 role
                 .setIssuedAt(new Date()) // 设置签发时间
                 .setExpiration(expiryDate) // 设置过期时间
                 .signWith(key, SignatureAlgorithm.HS512) // 使用 HS512 算法和密钥签名

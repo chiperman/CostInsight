@@ -1,0 +1,28 @@
+# 用于测试环境的配置
+
+spring:
+  # 告诉 Spring Cloud，在测试时 Nacos 配置是可选的
+  config:
+    import: "optional:nacos:"
+  # 在测试环境中完全禁用 Nacos 的配置功能
+  cloud:
+    nacos:
+      config:
+        enabled: false
+  # 配置 H2 内存数据库用于测试
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driverClassName: org.h2.Driver
+    username: sa
+    password: 
+  # 让 Hibernate 自动为 H2 创建和删除表结构
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+# 为测试提供运行所需的最小化配置
+app:
+  jwt:
+    secret: c0e8f4a9-7b1e-4d7a-9c8b-2f0a6d3c1e5b-long-enough-for-hs512-testing
+    expiration: 3600000

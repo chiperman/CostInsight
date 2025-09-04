@@ -1,0 +1,43 @@
+# 注意：
+# 1. 本文件仅作为 Nacos 配置模板使用，请不要直接放在本地 application.yml。
+# 2. 请将此文件内容复制到 Nacos 配置中心，Data ID 建议为：user-service.yml
+# 3. 请根据环境修改占位符，例如 ${MYSQL_URL}、${REDIS_HOST} 等。
+
+spring:
+  datasource:
+    url: ${MYSQL_URL:jdbc:mysql://127.0.0.1:3306/investment_tracker?useSSL=false&serverTimezone=Asia/Shanghai}
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:12345678}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:redis}
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/**/*.xml
+  type-aliases-package: com.costinsight.user.entity
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+server:
+  port: ${SERVER_PORT:8081}
+
+logging:
+  level:
+    root: info
+    com.costinsight.user: debug
+    com.costinsight.user.config.JwtAuthenticationInterceptor: debug
+    com.costinsight.user.util.JwtUtil: debug
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:change_me}
+    expiration: ${JWT_EXPIRATION:86400000}  # 24小时 (毫秒)

@@ -3,6 +3,7 @@ package com.costinsight.user.entity;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
 import java.time.LocalDateTime;
 
 @Data
@@ -21,6 +22,9 @@ public class User {
 
     @TableField("password") // 密码
     private String password;
+
+    @TableField("role") // 角色
+    private String role;
 
     @TableField(value = "created_at", fill = FieldFill.INSERT) // 创建时间，插入时自动填充
     private LocalDateTime createdAt;
